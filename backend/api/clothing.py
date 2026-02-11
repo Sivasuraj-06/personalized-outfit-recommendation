@@ -14,8 +14,9 @@ from sklearn.cluster import KMeans
 from matplotlib import colors as mcolors
 import models
 from database import SessionLocal
+from api.auth import get_current_user
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 UPLOAD_DIR = "static/uploads"
 
 
@@ -99,6 +100,7 @@ def create_clothing_item(
     color: str = Form(...),
     image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     image_filename = None
     if image:
@@ -108,7 +110,11 @@ def create_clothing_item(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
     clothing_item = models.ClothingItem(
-        item_type=item_type, color=color, is_available=True, image_url=image_filename
+        item_type=item_type,
+        color=color,
+        is_available=True,
+        image_url=image_filename,
+        user_id=current_user.id,
     )
     db.add(clothing_item)
     db.commit()
@@ -117,32 +123,27 @@ def create_clothing_item(
 
 
 @router.get("/", response_model=List[ClothingBase])
-def read_clothing_items(db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
-    items = db.query(models.ClothingItem).offset(skip).limit(limit).all()
-    return [
-        ClothingBase(
-            id=item.id,
-            item_type=item.item_type,
-            color=item.color,
-            is_available=item.is_available,
-            image_url=f"/static/uploads/{item.image_url}" if item.image_url else None,
-        )
-        for item in items
-    ]
+def read_clothing_items(
+    db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)
+):
+    items = db.query(models.ClothingItem).filter_by(user_id=current_user.id).all()
+    return items
 
 
 @router.get("/{item_id}", response_model=ClothingBase)
-def read_clothing_item(item_id: int, db: Session = Depends(get_db)):
-    item = db.query(models.ClothingItem).filter_by(id=item_id).first()
+def read_clothing_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    item = (
+        db.query(models.ClothingItem)
+        .filter_by(id=item_id, user_id=current_user.id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Clothing item not found")
-    return ClothingBase(
-        id=item.id,
-        item_type=item.item_type,
-        color=item.color,
-        is_available=item.is_available,
-        image_url=f"/static/uploads/{item.image_url}" if item.image_url else None,
-    )
+    return item
 
 
 @router.put("/{item_id}")
@@ -153,8 +154,13 @@ def update_clothing_item(
     is_available: bool = Form(True),
     image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    item = db.query(models.ClothingItem).filter_by(id=item_id).first()
+    item = (
+        db.query(models.ClothingItem)
+        .filter_by(id=item_id, user_id=current_user.id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Clothing item not found")
     item.item_type = item_type
@@ -177,8 +183,16 @@ def update_clothing_item(
 
 
 @router.delete("/{item_id}")
-def delete_clothing_item(item_id: int, db: Session = Depends(get_db)):
-    item = db.query(models.ClothingItem).filter_by(id=item_id).first()
+def delete_clothing_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    item = (
+        db.query(models.ClothingItem)
+        .filter_by(id=item_id, user_id=current_user.id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Clothing item not found")
     if item.image_url:
@@ -191,8 +205,16 @@ def delete_clothing_item(item_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{item_id}/toggle-availability")
-def toggle_clothing_availability(item_id: int, db: Session = Depends(get_db)):
-    item = db.query(models.ClothingItem).filter_by(id=item_id).first()
+def toggle_clothing_availability(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    item = (
+        db.query(models.ClothingItem)
+        .filter_by(id=item_id, user_id=current_user.id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Clothing item not found")
     item.is_available = not item.is_available

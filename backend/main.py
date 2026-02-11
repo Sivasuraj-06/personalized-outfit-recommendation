@@ -1,11 +1,21 @@
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine
 import models
+from api.auth import router as auth_router
 from api.clothing import router as clothing_router
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -19,4 +29,5 @@ def read_root():
     return {"message": "Alive"}
 
 
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(clothing_router, prefix="/clothing-items", tags=["Clothing"])

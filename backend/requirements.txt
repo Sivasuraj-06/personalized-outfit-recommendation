@@ -9,3 +9,5 @@ opencv-python
 ultralytics
 scikit-learn
 matplotlib
+python-jose[cryptography]
+google-auth
