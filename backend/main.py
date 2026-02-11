@@ -6,6 +6,7 @@ from database import engine
 import models
 from api.auth import router as auth_router
 from api.clothing import router as clothing_router
+from api.outfit import router as outfit_router
 
 app = FastAPI()
 
@@ -31,3 +32,4 @@ def read_root():
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(clothing_router, prefix="/clothing-items", tags=["Clothing"])
+app.include_router(outfit_router, prefix="/outfits", tags=["Outfits"])
