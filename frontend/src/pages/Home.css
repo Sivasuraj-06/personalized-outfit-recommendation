@@ -1,0 +1,11 @@
+.home {
+  min-height: 100vh;
+  background: #fafaf7;
+  font-family:
+    "DM Sans",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #2d2a26;
+}

@@ -69,14 +69,19 @@ def google_login(data: GoogleAuthRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid Google token")
     email = idinfo.get("email")
     name = idinfo.get("name")
+    picture = idinfo.get("picture")
     if not email:
         raise HTTPException(status_code=400, detail="Email not found in token")
     user = db.query(models.User).filter_by(email=email).first()
     if not user:
-        user = models.User(email=email, name=name)
+        user = models.User(email=email, name=name, picture=picture)
         db.add(user)
         db.commit()
         db.refresh(user)
+    else:
+        user.name = name
+        user.picture = picture
+        db.commit()
     access_token = create_jwt({"user_id": user.id, "email": user.email})
     return {"access_token": access_token}
 
@@ -87,4 +92,5 @@ def get_me(current_user: models.User = Depends(get_current_user)):
         "id": current_user.id,
         "email": current_user.email,
         "name": current_user.name,
+        "picture": current_user.picture,
     }
