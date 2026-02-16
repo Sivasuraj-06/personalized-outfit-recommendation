@@ -13,7 +13,7 @@ if not database_url:
 engine = create_engine(
     database_url,
     pool_pre_ping=True,
-    connect_args={"sslmode": "require"}
+    # connect_args={"sslmode": "require"}
 )
 
 SessionLocal = sessionmaker(
