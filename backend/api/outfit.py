@@ -1,4 +1,5 @@
 import os
+
 import httpx
 from datetime import date, timedelta
 from typing import List, Optional
@@ -112,9 +113,9 @@ def get_week_outfits(
 async def generate_outfits(
     request: RecommendationRequest,
     db: Session = Depends(get_db),
-    city: Optional[str] = None,
     current_user: models.User = Depends(get_current_user),
 ):
+    city: Optional[str] = request.city
     outfit_inventory = (
         db.query(models.ClothingItem).filter_by(user_id=current_user.id).all()
     )
@@ -139,7 +140,9 @@ async def generate_outfits(
             average_temp = sum(day["day"]["avgtemp_c"] for day in forecast_list) / len(
                 forecast_list
             )
+            print(f"Average Temperature for {city}: {average_temp:.1f}°C")
             request.average_temperature = f"Average Temperature: {average_temp:.1f}°C"
+            request.city = None
         except KeyError:
             raise HTTPException(status_code=500, detail="Failed to parse weather data")
     else:

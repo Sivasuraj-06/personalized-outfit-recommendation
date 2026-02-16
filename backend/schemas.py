@@ -34,5 +34,6 @@ class WeeklyOutfitPlan(BaseModel):
 
 
 class RecommendationRequest(BaseModel):
+    city: Optional[str] = None
     average_temperature: Optional[str] = None
     previous_plan: Optional[WeeklyOutfitPlan] = None

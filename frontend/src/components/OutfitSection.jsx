@@ -67,7 +67,7 @@ const OutfitSection = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ city: "" }),
         },
       );
       if (!res.ok) throw new Error();
