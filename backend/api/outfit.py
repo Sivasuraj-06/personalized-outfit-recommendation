@@ -116,6 +116,7 @@ async def generate_outfits(
     current_user: models.User = Depends(get_current_user),
 ):
     city: Optional[str] = request.city
+    print(f"Received outfit generation request for city: {city}")
     outfit_inventory = (
         db.query(models.ClothingItem).filter_by(user_id=current_user.id).all()
     )

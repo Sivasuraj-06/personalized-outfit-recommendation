@@ -82,7 +82,7 @@ const OutfitSection = () => {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
           body: JSON.stringify({
-            city: "",
+            city: "Katpadi",
             previous_plan: { plan: previousPlanData },
           }),
         },
