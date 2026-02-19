@@ -109,7 +109,8 @@ def get_week_outfits(
     return outfits
 
 
-@router.post("/generate", response_model=List[OutfitBase])
+@router.post("/generate", response_model=List[RecommendationRequest
+             ])
 async def generate_outfits(
     request: RecommendationRequest,
     db: Session = Depends(get_db),
@@ -118,7 +119,7 @@ async def generate_outfits(
     city: Optional[str] = request.city
     print(f"Received outfit generation request for city: {city}")
     outfit_inventory = (
-        db.query(models.ClothingItem).filter_by(user_id=current_user.id).all()
+        db.query(models.ClothingItem).filter_by(user_id=current_user.id, is_available=True).all()
     )
     if not outfit_inventory:
         raise HTTPException(

@@ -6,6 +6,7 @@ import { FadeLoader } from "react-spinners";
 const OutfitSection = () => {
   const [outfits, setOutfits] = useState([]);
   const [generating, setGenerating] = useState(false);
+  const [city, setCity] = useState("");
 
   const buildWeek = () => {
     const today = new Date();
@@ -73,6 +74,18 @@ const OutfitSection = () => {
           bottom: o.bottom,
         }));
       setOutfits(buildWeek());
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+          );
+          const city = await res.json();
+          setCity(
+            data.address.city || data.address.town || data.address.village,
+          );
+        });
+      }
       const res = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/outfits/generate`,
         {
@@ -82,7 +95,7 @@ const OutfitSection = () => {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
           body: JSON.stringify({
-            city: "Katpadi",
+            city: "",
             previous_plan: { plan: previousPlanData },
           }),
         },
