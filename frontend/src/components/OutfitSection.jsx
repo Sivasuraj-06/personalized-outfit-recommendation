@@ -61,7 +61,9 @@ const OutfitSection = () => {
     outfits.length > 0 &&
     outfits[0].date < new Date().toISOString().split("T")[0];
   const buttonLabel =
-    hasExistingOutfits && !isPastWeek ? "Regenerate" : "Generate";
+    (hasExistingOutfits || generating) && !isPastWeek
+      ? "Regenerate"
+      : "Generate";
 
   const handleGenerate = async () => {
     try {
@@ -80,9 +82,11 @@ const OutfitSection = () => {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
           );
-          const city = await res.json();
+          const geoData = await res.json();
           setCity(
-            data.address.city || data.address.town || data.address.village,
+            geoData.address.city ||
+              geoData.address.town ||
+              geoData.address.village,
           );
         });
       }
@@ -95,7 +99,7 @@ const OutfitSection = () => {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
           body: JSON.stringify({
-            city: "",
+            city: "Katpadi",
             previous_plan: { plan: previousPlanData },
           }),
         },
